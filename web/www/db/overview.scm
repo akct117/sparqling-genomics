@@ -30,7 +30,8 @@
   #:export (number-of-samples
             all-samples
             number-of-variant-calls
-            number-of-copynumber-calls))
+            number-of-copynumber-calls
+            tumor-types-overview))
 
 ;; SINGLE-VALUE-QUERY
 ;; ----------------------------------------------------------------------------
@@ -180,6 +181,52 @@ SELECT COUNT(?cnv) WHERE { ?cnv col:copynumber ?o }")
                                                (all-connections)))))
             (apply + variants))))
     (lambda (key . args) 0)))
+
+;; TUMOR-TYPES-OVERVIEW
+;; ----------------------------------------------------------------------------
+
+;; (define (tumor-types-overview)
+;;   `(((name . "Breast") (samples . 500))
+;;     ((name . "Colon")  (samples . 100))
+;;     ((name . "Liver")  (samples . 243))
+;;     ((name . "Small Intestine") (samples . 147))))
+
+(define* (tumor-types-overview #:optional (connection #f))
+  (catch #t
+    (lambda _
+      (if connection
+          (let* ((query "PREFIX ptl:  <http://sparqling-genomics/PrimaryTumorLocation/>
+PREFIX col: <http://sparqling-genomics/table2rdf/Column/>
+
+SELECT STRAFTER(STR(?type), STR(ptl:)) AS ?primaryTumorType
+       COUNT(?sample) AS ?numberOfSamples
+FROM <http://hmf/metadata>
+WHERE {
+  ?row col:primarytumorlocation ?type ;
+       col:sampleid             ?sample .
+}
+ORDER BY DESC(?numberOfSamples)")
+                 (results (query-results->list
+                           (sparql-query query
+                                         #:uri (connection-uri connection)
+                                         #:store-backend
+                                         (connection-backend connection)
+                                         #:digest-auth
+                                         (if (and (connection-username connection)
+                                                  (connection-password connection))
+                                             (string-append
+                                              (connection-username connection) ":"
+                                              (connection-password connection))
+                                             #f))
+                           #t)))
+            results)
+          (let* ((types (delete #f (par-map tumor-types-overview
+                                            (all-connections)))))
+            (map (lambda (item)
+                   `((name    . ,(list-ref item 0))
+                     (samples . ,(string->number (list-ref item 1)))))
+                 (apply append types)))))
+    (lambda (key . args) #f)))
 
 (define* (number-of-variant-calls-deduplicated #:optional (connection #f))
   (format #t "Pre-executed time:   ~a~%"
