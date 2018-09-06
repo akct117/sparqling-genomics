@@ -31,7 +31,8 @@
             all-samples
             number-of-variant-calls
             number-of-copynumber-calls
-            tumor-types-overview))
+            tumor-types-overview
+            birthyear-distribution))
 
 ;; SINGLE-VALUE-QUERY
 ;; ----------------------------------------------------------------------------
@@ -225,6 +226,41 @@ ORDER BY DESC(?numberOfSamples)")
             (map (lambda (item)
                    `((name    . ,(list-ref item 0))
                      (samples . ,(string->number (list-ref item 1)))))
+                 (apply append types)))))
+    (lambda (key . args) #f)))
+
+(define* (birthyear-distribution #:optional (connection #f))
+  (catch #t
+    (lambda _
+      (if connection
+          (let* ((query "PREFIX col: <http://sparqling-genomics/table2rdf/Column/>
+
+SELECT ?year COUNT(?sample) AS ?numberOfSamples
+FROM <http://hmf/metadata>
+WHERE {
+  ?row col:sampleid             ?sample ;
+       col:birthyear            ?year   .
+}
+ORDER BY ASC(?year)")
+                 (results (query-results->list
+                           (sparql-query query
+                                         #:uri (connection-uri connection)
+                                         #:store-backend
+                                         (connection-backend connection)
+                                         #:digest-auth
+                                         (if (and (connection-username connection)
+                                                  (connection-password connection))
+                                             (string-append
+                                              (connection-username connection) ":"
+                                              (connection-password connection))
+                                             #f))
+                           #t)))
+            results)
+          (let* ((types (delete #f (par-map birthyear-distribution
+                                            (all-connections)))))
+            (map (lambda (item)
+                   `((birthyear . ,(list-ref item 0))
+                     (samples   . ,(string->number (list-ref item 1)))))
                  (apply append types)))))
     (lambda (key . args) #f)))
 

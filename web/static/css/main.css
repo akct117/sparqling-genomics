@@ -547,7 +547,8 @@ input[type=submit].login-field {
     z-index: 9999;
 }
 .overview-plot-wrapper {
-    width: 200px;
+    display: inline-block;
+    width: auto;
     text-align: center;
     margin: 0px;
     padding: 0px;
@@ -558,3 +559,6 @@ input[type=submit].login-field {
     padding: 0px;
     line-height: 1em;
 }
+#plots-wrapper { width: 100%; margin: auto; padding: auto; }
+svg { background: #ffffff; }
+.bar { fill: #3d9970; }
