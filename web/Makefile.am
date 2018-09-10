@@ -66,7 +66,7 @@ WWW_STATIC_RESOURCES =                                  \
   static/images/sort_desc.png                           \
   static/datatables.min.css                             \
   static/jquery.dataTables.min.js                       \
-  static/jquery-3.2.1.min.js                            \
+  static/jquery-3.3.1.min.js                            \
   static/ace/ace.js                                     \
   static/ace/mode-sparql.js                             \
   static/ace/theme-github.js

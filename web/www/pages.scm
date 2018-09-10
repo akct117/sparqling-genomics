@@ -71,7 +71,7 @@
                (type "image/x-icon")
                (href "/static/favicon.ico")))
       ,(if (memq 'jquery dependencies)
-           `(script (@ (type "text/javascript") (src "/static/jquery-3.2.1.min.js")) "")
+           `(script (@ (type "text/javascript") (src "/static/jquery-3.3.1.min.js")) "")
            `())
       ,(if (memq 'd3 dependencies)
            `((script (@ (type "text/javascript") (src "/static/d3/d3.min.js")) ""))
